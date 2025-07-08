@@ -34,18 +34,16 @@ nfpms:
     maintainer: "Abel Penton <2235penton@gmail.com>"
     description: "A simple CLI to greet users"
     license: "MIT"
-
     formats:
       - deb
       - rpm
       - apk
-
-    depends:
+    dependencies:
       - git
-
-    binaries:
-      - go-greeter-user
-
+    contents:
+      - src: "./go-greeter-user"
+        dst: "/usr/bin/go-greeter-user"
+        mode: "0755"
     contents:
       - src: "./README.md"
         dst: "/usr/share/doc/go-greeter-user/README.md"
