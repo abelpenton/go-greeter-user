@@ -17,7 +17,7 @@ checksum:
   name_template: "checksums.txt"
 
 brews:
-  - name: greeter-cli
+  - name: cli
     homepage: https://github.com/abelpenton/go-greeter-user
     description: "A simple CLI to greet users"
     repository:
