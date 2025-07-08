@@ -1,0 +1,83 @@
+# Greeter CLI
+
+A simple command-line tool written in Go to greet users by name.
+
+## ✨ Features
+
+- `hello` command to greet someone.
+- Optional `--name` flag (or `-n`) to specify the name.
+- Defaults to "stranger" if no name is provided.
+- Built using the [cobra](https://github.com/spf13/cobra) CLI framework.
+
+---
+
+## 📦 Installation
+
+Make sure you have Go installed: [https://go.dev/dl](https://go.dev/dl)
+
+Clone this repo and install dependencies:
+
+```bash
+go mod init greeter
+go get github.com/spf13/cobra
+```
+
+---
+
+## 🚀 Usage
+
+Run the CLI:
+
+```bash
+go run main.go hello --name Alice
+```
+
+Output:
+
+```
+Hello, Alice!
+```
+
+Without a name:
+
+```bash
+go run main.go hello
+```
+
+Output:
+
+```
+Hello, stranger!
+```
+
+---
+
+## 🛠 Commands
+
+| Command         | Description               |
+|-----------------|---------------------------|
+| `hello`         | Say hello to a person     |
+| `--name`, `-n`  | Specify the person's name |
+| `--help`        | Show help message         |
+
+---
+
+## 📁 Project Structure
+
+```text
+.
+├── main.go        # Main CLI logic using cobra
+├── go.mod         # Module file
+```
+
+---
+
+## 🤝 Contributing
+
+Feel free to open issues or PRs to improve or extend functionality (e.g., adding `goodbye` command).
+
+---
+
+## 📜 License
+
+MIT

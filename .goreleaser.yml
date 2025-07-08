@@ -1,0 +1,25 @@
+project_name: go-greeter-user
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch: #Intel and Apple Silicon support
+      - amd64
+      - arm64
+
+archives:
+  - format: tar.gz
+
+checksum:
+  name_template: "checksums.txt"
+
+brews:
+  - name: go-greeter-user
+    homepage: https://github.com/abelpenton/go-greeter-user
+    description: "A simple CLI to greet users"
+    repository:
+      owner: abelpenton
+      name: homebrew-go-greeter-user
