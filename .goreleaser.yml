@@ -24,3 +24,28 @@ brews:
       owner: abelpenton
       name: homebrew-go-greeter-user
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+
+nfpms:
+  - id: packages
+    package_name: go-greeter-user
+    file_name_template: "{{ .ConventionalFileName }}"
+    vendor: "Abel Penton/Organization"
+    homepage: "https://github.com/abelpenton/go-greeter-user"
+    maintainer: "Abel Penton <2235penton@gmail.com>"
+    description: "A simple CLI to greet users"
+    license: "MIT"
+
+    formats:
+      - deb
+      - rpm
+      - apk
+
+    depends:
+      - git
+
+    binaries:
+      - go-greeter-user
+
+    contents:
+      - src: "./README.md"
+        dst: "/usr/share/doc/go-greeter-user/README.md"
