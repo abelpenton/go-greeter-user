@@ -23,3 +23,4 @@ brews:
     repository:
       owner: abelpenton
       name: homebrew-go-greeter-user
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
