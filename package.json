@@ -1,5 +1,5 @@
 {
-  "name": "go-greeter-user",
+  "name": "@abelpenton_dev/go-greeter-user",
   "version": "1.0.0",
   "bin": {
     "greeter-cli": "go-greeter-user"
