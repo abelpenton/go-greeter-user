@@ -17,7 +17,7 @@ checksum:
   name_template: "checksums.txt"
 
 brews:
-  - name: cli
+  - name: greeter-cli
     homepage: https://github.com/abelpenton/go-greeter-user
     description: "A simple CLI to greet users"
     repository:
@@ -25,22 +25,14 @@ brews:
       name: homebrew-go-greeter-user
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
 
-nfpms:
-  - id: packages
-    package_name: go-greeter-user
-    file_name_template: "{{ .ConventionalFileName }}"
-    vendor: "Abel Penton/Organization"
-    homepage: "https://github.com/abelpenton/go-greeter-user"
-    maintainer: "Abel Penton <2235penton@gmail.com>"
+npms:
+  - name: "@abelpenton/greeter-cli"
     description: "A simple CLI to greet users"
-    license: "MIT"
-    formats:
-      - deb
-      - rpm
-      - apk
-    dependencies:
-      - git
-    contents:
-      - src: "./go-greeter-user"
-        dst: "/usr/bin/go-greeter-user"
-        mode: "0755"
+    homepage: https://github.com/abelpenton/go-greeter-user
+    author: "Abel Penton <2235penton@gmail.com>"
+    repository: https://github.com/abelpenton/go-greeter-user
+    keywords:
+      - cli
+      - greeter
+      - go
+    access: public
