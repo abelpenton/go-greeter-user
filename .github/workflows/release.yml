@@ -18,8 +18,6 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: stable
-      - name: List dist contents
-          run: ls -R ./dist
       - uses: goreleaser/goreleaser-action@v5
         with:
           version: latest
