@@ -3,17 +3,13 @@ set -e
 
 echo "Setting up NPM package structure..."
 
-# Clean up any existing npm-package directory
-if [ -d "npm-package" ]; then
-    chmod -R 755 npm-package 2>/dev/null || true
-    rm -rf npm-package
-fi
+# Clean up any existing npm-package (file or directory)
+rm -rf npm-package 2>/dev/null || true
 
 # Create npm package directory
 mkdir -p npm-package/bin
 
-# Remove any existing package.json and copy fresh one
-rm -f npm-package/package.json
+# Copy package.json to npm-package
 cp package.json npm-package/
 
 # Find and copy the Linux x64 binary (this will be the main one for NPM)
