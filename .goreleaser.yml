@@ -28,5 +28,6 @@ brews:
 publishers:
   - name: npm
     cmd: npx -y goreleaser-npm-publisher publish --clean --token {{ .Env.NPM_TOKEN }}
+    dir: ./dist
     env:
       - NPM_TOKEN={{ .Env.NPM_TOKEN }}
