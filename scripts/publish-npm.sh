@@ -4,7 +4,10 @@ set -e
 echo "Setting up NPM package structure..."
 
 # Clean up any existing npm-package directory
-rm -rf npm-package
+if [ -d "npm-package" ]; then
+    chmod -R 755 npm-package 2>/dev/null || true
+    rm -rf npm-package
+fi
 
 # Create npm package directory
 mkdir -p npm-package/bin
