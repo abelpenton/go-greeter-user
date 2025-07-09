@@ -1,5 +1,7 @@
 project_name: go-greeter-user
 
+version: 2
+
 builds:
   - env:
       - CGO_ENABLED=0
@@ -27,7 +29,6 @@ brews:
 
 publishers:
   - name: npm
-    cmd: ls && pwd && npx -y goreleaser-npm-publisher publish --clean --token {{ .Env.NPM_TOKEN }}
-    dir: /dist
+    cmd: npx -y goreleaser-npm-publisher publish --clean --token {{ .Env.NPM_TOKEN }}
     env:
       - NPM_TOKEN={{ .Env.NPM_TOKEN }}
