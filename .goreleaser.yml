@@ -27,7 +27,8 @@ brews:
 
 publishers:
   - name: npm
-    cmd: npx -y goreleaser-npm-publisher publish --clean --token {{ .Env.NPM_TOKEN }}
-    dir: "{{ dir .ArtifactPath }}"
+    cmd: |
+      ls && pwd && \
+      npx -y goreleaser-npm-publisher publish --clean --token {{ .Env.NPM_TOKEN }}
     env:
       - NPM_TOKEN={{ .Env.NPM_TOKEN }}
