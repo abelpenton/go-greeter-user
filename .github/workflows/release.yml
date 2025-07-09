@@ -18,10 +18,13 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: stable
+      - name: List dist contents
+          run: ls -R ./dist
       - uses: goreleaser/goreleaser-action@v5
         with:
           version: latest
           args: release --clean
+        working-directory: ./
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
