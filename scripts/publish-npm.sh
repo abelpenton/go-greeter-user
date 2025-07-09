@@ -3,6 +3,9 @@ set -e
 
 echo "Setting up NPM package structure..."
 
+# Clean up any existing npm-package directory
+rm -rf npm-package
+
 # Create npm package directory
 mkdir -p npm-package/bin
 
