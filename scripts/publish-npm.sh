@@ -12,7 +12,8 @@ fi
 # Create npm package directory
 mkdir -p npm-package/bin
 
-# Copy package.json to npm-package
+# Remove any existing package.json and copy fresh one
+rm -f npm-package/package.json
 cp package.json npm-package/
 
 # Find and copy the Linux x64 binary (this will be the main one for NPM)
