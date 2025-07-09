@@ -19,7 +19,6 @@ go.work
 
 # Build output
 /bin/
-/dist/
 /build/
 
 # IDE-specific files
@@ -44,8 +43,8 @@ Thumbs.db
 *.tmp
 *.temp
 
-# GoReleaser
-dist/
+# GoReleaser build artifacts (keep dist/ directory but ignore archives)
+/dist/
 *.tar.gz
 *.zip
 *.deb

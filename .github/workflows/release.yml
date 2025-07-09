@@ -22,8 +22,8 @@ jobs:
         with:
           version: latest
           args: release --clean
-        working-directory: ./
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PWD: ${{ github.workspace }}
