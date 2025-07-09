@@ -1,6 +1,6 @@
 {
   "name": "@abelpenton_dev/go-greeter-user",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "bin": {
     "greeter-cli": "./bin/go-greeter-user"
   },
@@ -8,6 +8,11 @@
     "access": "public"
   },
   "files": [
-    "bin/**"
+    "bin/**",
+    "*.go",
+    "go.mod",
+    "go.sum",
+    "README*",
+    "Makefile"
   ]
 }
