@@ -38,10 +38,3 @@ brews:
       owner: abelpenton
       name: homebrew-go-greeter-user
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-
-publishers:
-  - name: npm
-    cmd: bash scripts/publish-npm.sh
-    env:
-      - NPM_TOKEN={{ .Env.NPM_TOKEN }}
-      - TAG={{ .Tag }}

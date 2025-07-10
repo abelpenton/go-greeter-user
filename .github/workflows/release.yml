@@ -26,3 +26,200 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Add npm publishing after GoReleaser
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Create npm package
+        run: |
+          # Create npm directory (remove if exists)
+          if [ -d "npm-package" ]; then
+            rm -rf npm-package
+          fi
+          mkdir -p npm-package
+          cd npm-package
+
+          # Extract version from tag
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Creating npm package version: $VERSION"
+
+          # Create package.json
+          cat > package.json << EOF
+          {
+            "name": "go-greeter-user",
+            "version": "$VERSION",
+            "description": "A simple CLI to greet users",
+            "bin": {
+              "greeter": "./bin/greeter"
+            },
+            "scripts": {
+              "postinstall": "node install.js"
+            },
+            "files": [
+              "bin/",
+              "install.js"
+            ],
+            "os": ["darwin", "linux", "win32"],
+            "cpu": ["x64", "arm64"],
+            "keywords": ["cli", "greeter", "go"],
+            "author": "abelpenton",
+            "license": "MIT",
+            "homepage": "https://github.com/abelpenton/go-greeter-user",
+            "repository": {
+              "type": "git",
+              "url": "https://github.com/abelpenton/go-greeter-user.git"
+            }
+          }
+          EOF
+
+          # Create install.js
+          cat > install.js << 'EOF'
+          const https = require('https');
+          const fs = require('fs');
+          const path = require('path');
+          const { execSync } = require('child_process');
+
+          const platform = process.platform;
+          const arch = process.arch;
+
+          // Map Node.js platform/arch to GoReleaser naming
+          const platformMap = {
+            'darwin': 'Darwin',
+            'linux': 'Linux',
+            'win32': 'Windows'
+          };
+
+          const archMap = {
+            'x64': 'x86_64',
+            'arm64': 'arm64'
+          };
+
+          const mappedPlatform = platformMap[platform];
+          const mappedArch = archMap[arch];
+
+          if (!mappedPlatform || !mappedArch) {
+            console.error(`Unsupported platform: ${platform}-${arch}`);
+            process.exit(1);
+          }
+
+          // Get version from package.json
+          const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const version = packageJson.version;
+
+          // Construct download URL and binary name
+          const binaryName = platform === 'win32' ? 'go-greeter-user.exe' : 'go-greeter-user';
+          const archiveName = `go-greeter-user_${mappedPlatform}_${mappedArch}.tar.gz`;
+          const downloadUrl = `https://github.com/abelpenton/go-greeter-user/releases/download/v${version}/${archiveName}`;
+
+          // File paths
+          const binDir = path.join(__dirname, 'bin');
+          const targetBinary = path.join(binDir, 'greeter');
+          const tempArchive = path.join(__dirname, archiveName);
+
+          // Check if binary already exists and is executable
+          if (fs.existsSync(targetBinary)) {
+            try {
+              // Test if binary is working
+              execSync(`"${targetBinary}" --version`, { stdio: 'ignore' });
+              console.log('Binary already installed and working!');
+              return;
+            } catch (error) {
+              console.log('Existing binary not working, reinstalling...');
+            }
+          }
+
+          console.log(`Downloading ${downloadUrl}...`);
+
+          // Create bin directory (remove existing if needed)
+          if (fs.existsSync(binDir)) {
+            fs.rmSync(binDir, { recursive: true, force: true });
+          }
+          fs.mkdirSync(binDir, { recursive: true });
+
+          // Clean up any existing temp files
+          if (fs.existsSync(tempArchive)) {
+            fs.unlinkSync(tempArchive);
+          }
+
+          // Download and extract
+          const file = fs.createWriteStream(tempArchive);
+          const request = https.get(downloadUrl, (response) => {
+            if (response.statusCode !== 200) {
+              console.error(`Failed to download: ${response.statusCode}`);
+              process.exit(1);
+            }
+            
+            response.pipe(file);
+            file.on('finish', () => {
+              file.close();
+              
+              try {
+                // Extract tar.gz
+                execSync(`tar -xzf "${tempArchive}"`, { stdio: 'inherit' });
+                
+                // Find the extracted binary
+                const extractedBinary = path.join(__dirname, binaryName);
+                
+                if (fs.existsSync(extractedBinary)) {
+                  // Move binary to bin directory
+                  fs.renameSync(extractedBinary, targetBinary);
+                  fs.chmodSync(targetBinary, '755');
+                  console.log('Installation completed successfully!');
+                } else {
+                  console.error('Binary not found in extracted archive');
+                  // List files to help debug
+                  console.log('Available files:', fs.readdirSync(__dirname));
+                  process.exit(1);
+                }
+              } catch (error) {
+                console.error('Error during extraction:', error);
+                process.exit(1);
+              } finally {
+                // Cleanup temp files
+                try {
+                  if (fs.existsSync(tempArchive)) {
+                    fs.unlinkSync(tempArchive);
+                  }
+                  
+                  // Clean up any other extracted files
+                  const files = fs.readdirSync(__dirname);
+                  files.forEach(file => {
+                    if (file !== 'package.json' && file !== 'install.js' && file !== 'bin' && file !== 'README.md') {
+                      const filePath = path.join(__dirname, file);
+                      const stat = fs.statSync(filePath);
+                      if (stat.isFile()) {
+                        fs.unlinkSync(filePath);
+                      }
+                    }
+                  });
+                } catch (cleanupError) {
+                  console.warn('Warning: Could not clean up temp files:', cleanupError.message);
+                }
+              }
+            });
+          });
+
+          request.on('error', (error) => {
+            console.error('Download error:', error);
+            process.exit(1);
+          });
+          EOF
+
+          # Create bin directory (will be populated by install.js)
+          mkdir -p bin
+
+          # Create a placeholder binary (will be replaced by install.js)
+          echo "#!/bin/bash" > bin/greeter
+          echo "echo 'Installing...'" >> bin/greeter
+          chmod +x bin/greeter
+
+      - name: Publish to npm
+        run: |
+          cd npm-package
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
