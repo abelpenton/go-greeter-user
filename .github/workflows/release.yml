@@ -117,14 +117,18 @@ jobs:
 
           // File paths
           const binDir = path.join(__dirname, 'bin');
-          const targetBinary = path.join(binDir, 'greeter');
+          const targetBinary = path.join(binDir, platform === 'win32' ? 'greeter.exe' : 'greeter');
           const tempArchive = path.join(__dirname, archiveName);
 
           // Check if binary already exists and is executable
           if (fs.existsSync(targetBinary)) {
             try {
-              // Test if binary is working
-              execSync(`"${targetBinary}" --version`, { stdio: 'ignore' });
+              // Test if binary is working (try both --version and --help)
+              try {
+                execSync(`"${targetBinary}" --version`, { stdio: 'ignore' });
+              } catch {
+                execSync(`"${targetBinary}" --help`, { stdio: 'ignore' });
+              }
               console.log('Binary already installed and working!');
               return;
             } catch (error) {
@@ -145,21 +149,65 @@ jobs:
             fs.unlinkSync(tempArchive);
           }
 
-          // Download and extract
-          const file = fs.createWriteStream(tempArchive);
-          const request = https.get(downloadUrl, (response) => {
-            if (response.statusCode !== 200) {
-              console.error(`Failed to download: ${response.statusCode}`);
-              process.exit(1);
-            }
-            
-            response.pipe(file);
-            file.on('finish', () => {
-              file.close();
+          // Function to follow redirects
+          function downloadWithRedirects(url, maxRedirects = 5) {
+            return new Promise((resolve, reject) => {
+              const request = https.get(url, (response) => {
+                if (response.statusCode === 302 || response.statusCode === 301) {
+                  if (maxRedirects > 0) {
+                    console.log(`Following redirect to: ${response.headers.location}`);
+                    downloadWithRedirects(response.headers.location, maxRedirects - 1)
+                      .then(resolve)
+                      .catch(reject);
+                    return;
+                  } else {
+                    reject(new Error('Too many redirects'));
+                    return;
+                  }
+                }
+                
+                if (response.statusCode !== 200) {
+                  reject(new Error(`Failed to download: ${response.statusCode}`));
+                  return;
+                }
+                
+                const file = fs.createWriteStream(tempArchive);
+                response.pipe(file);
+                
+                file.on('finish', () => {
+                  file.close();
+                  resolve();
+                });
+                
+                file.on('error', (error) => {
+                  fs.unlink(tempArchive, () => {});
+                  reject(error);
+                });
+              });
               
+              request.on('error', (error) => {
+                reject(error);
+              });
+            });
+          }
+
+          // Download and extract
+          downloadWithRedirects(downloadUrl)
+            .then(() => {
               try {
-                // Extract tar.gz
-                execSync(`tar -xzf "${tempArchive}"`, { stdio: 'inherit' });
+                // Extract tar.gz - handle Windows differently
+                if (platform === 'win32') {
+                  // Try different extraction methods for Windows
+                  try {
+                    execSync(`tar -xzf "${tempArchive}"`, { stdio: 'inherit' });
+                  } catch (tarError) {
+                    // If tar fails, try PowerShell (Windows 10+)
+                    console.log('tar command failed, trying PowerShell...');
+                    execSync(`powershell -command "tar -xzf '${tempArchive}'"`, { stdio: 'inherit' });
+                  }
+                } else {
+                  execSync(`tar -xzf "${tempArchive}"`, { stdio: 'inherit' });
+                }
                 
                 // Find the extracted binary
                 const extractedBinary = path.join(__dirname, binaryName);
@@ -167,7 +215,12 @@ jobs:
                 if (fs.existsSync(extractedBinary)) {
                   // Move binary to bin directory
                   fs.renameSync(extractedBinary, targetBinary);
-                  fs.chmodSync(targetBinary, '755');
+                  
+                  // Set permissions (skip on Windows)
+                  if (platform !== 'win32') {
+                    fs.chmodSync(targetBinary, '755');
+                  }
+                  
                   console.log('Installation completed successfully!');
                 } else {
                   console.error('Binary not found in extracted archive');
@@ -190,9 +243,13 @@ jobs:
                   files.forEach(file => {
                     if (file !== 'package.json' && file !== 'install.js' && file !== 'bin' && file !== 'README.md') {
                       const filePath = path.join(__dirname, file);
-                      const stat = fs.statSync(filePath);
-                      if (stat.isFile()) {
-                        fs.unlinkSync(filePath);
+                      try {
+                        const stat = fs.statSync(filePath);
+                        if (stat.isFile()) {
+                          fs.unlinkSync(filePath);
+                        }
+                      } catch (e) {
+                        // Ignore cleanup errors
                       }
                     }
                   });
@@ -200,13 +257,11 @@ jobs:
                   console.warn('Warning: Could not clean up temp files:', cleanupError.message);
                 }
               }
+            })
+            .catch((error) => {
+              console.error('Download error:', error);
+              process.exit(1);
             });
-          });
-
-          request.on('error', (error) => {
-            console.error('Download error:', error);
-            process.exit(1);
-          });
           EOF
 
           # Create bin directory (will be populated by install.js)
